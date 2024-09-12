@@ -55,6 +55,8 @@ io.on("connection", (socket) => {
         let findone=members.findIndex(item=>item.uid===socket.id)
         console.log('打印已经退出的index',findone);
         members.splice(findone,1)
+        console.log('打印断开删除后的数组长度',members.length);
+     
         socket.broadcast.emit("welcome",members);
         
       });

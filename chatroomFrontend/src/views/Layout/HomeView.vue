@@ -1,8 +1,10 @@
 <template>
   <div class="home">
     <div class="chatWindow">
+      <!-- 群员列表 -->
       <div class="leftWindow">
         <div class="empty">
+          <!-- 退出聊天室 -->
           <div
             @click="logout"
             style="
@@ -81,77 +83,16 @@
           </div>
         </div>
       </div>
-      <div v-if="showChatWindow" class="rightWindow">
+      <!-- 群聊区域 -->
+      <div v-if="true" class="rightWindow">
         <!-- 聊天室名称 -->
-        <div class="roomTitle">
+        <div v-if="!isPrivateValue" class="roomTitle">
           <div class="titlespace">
             <avatarPart></avatarPart>
             <div class="roomName">嗨皮群聊</div>
           </div>
         </div>
-        <!-- 聊天区域 -->
-        <div class="chat">
-          <div class="chatroom">
-            <div ref="messageboxRef" class="messagebox">
-              <div
-                class="msgBox"
-                v-for="(item, index) in userStore.roomChatHistory"
-                :key="index"
-              >
-                <!-- 我的信息（在右边） -->
-                <div
-                  v-if="item.name === userStore.userInfo.name"
-                  class="rightMsg"
-                >
-                  <div class="text">
-                    <div class="name">{{ item.name }}</div>
-                    <div class="msg">{{ item.msg }}</div>
-                  </div>
-
-                  <div class="avatar">
-                    <img
-                      style="height: 100%; width: 100%"
-                      :src="item.pic"
-                      alt=""
-                    />
-                  </div>
-                </div>
-                <!-- 群友信息（在左边） -->
-                <div v-else class="leftMsg">
-                  <div class="avatar">
-                    <img
-                      style="height: 100%; width: 100%"
-                      :src="item.pic"
-                      alt=""
-                    />
-                  </div>
-                  <div class="text">
-                    <div class="name">{{ item.name }}</div>
-                    <div class="msg">{{ item.msg }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- 发送按钮 -->
-            <div class="send">
-              <div class="chatInputs">
-                <input v-model="inpMsg" class="inp" />
-                <div class="sendBtn" @click="sendMsg">
-                  <img
-                    style="width: 65%; height: 65%"
-                    src="../../assets/images/img/emoji/rocket.png"
-                    alt=""
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- 私聊区域 -->
-      <div v-else-if="!showChatWindow" class="rightWindow">
-        <!-- 聊天室名称 -->
-        <div class="roomTitle">
+        <div v-else class="roomTitle">
           <div class="titlespace">
             <div
               style="
@@ -173,13 +114,17 @@
         <!-- 聊天区域 -->
         <div class="chat">
           <div class="chatroom">
-            <div ref="messageboxRef" class="messagebox">
+            <messageboxPart
+              :isPrivate="isPrivateValue"
+              ref="messageBoxPartRef"
+            ></messageboxPart>
+            <!-- <div ref="messageboxRef" class="messagebox">
               <div
                 class="msgBox"
-                v-for="(item, index) in filterPrivateChatList"
+                v-for="(item, index) in userStore.roomChatHistory"
                 :key="index"
               >
-                <!-- 我的信息（在右边） -->
+         
                 <div
                   v-if="item.name === userStore.userInfo.name"
                   class="rightMsg"
@@ -197,7 +142,7 @@
                     />
                   </div>
                 </div>
-                <!-- 群友信息（在左边） -->
+          
                 <div v-else class="leftMsg">
                   <div class="avatar">
                     <img
@@ -212,12 +157,13 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
+
             <!-- 发送按钮 -->
             <div class="send">
               <div class="chatInputs">
                 <input v-model="inpMsg" class="inp" />
-                <div class="sendBtn" @click="privateSend">
+                <div class="sendBtn" @click="sendMsg">
                   <img
                     style="width: 65%; height: 65%"
                     src="../../assets/images/img/emoji/rocket.png"
@@ -239,29 +185,18 @@ import { io } from 'socket.io-client'
 import { useRouter } from 'vue-router'
 import { ArrowLeftBold } from '@element-plus/icons-vue'
 import { chatRoomUserInfo } from '@/stores/modules/user'
-// import { ElMessage } from 'element-plus'
+import messageboxPart from '@/components/messageboxPart.vue'
 const router = useRouter()
+const messageBoxPartRef = ref('')
 const userStore = chatRoomUserInfo()
-const showChatWindow = ref(true)
-// const showPrivateChat = ref(false)
+// const showChatWindow = ref(true)
 const otoUser = ref({})
 const activeIndex = ref(0)
 const index = ref(1)
-const messageboxRef = ref('')
+const isPrivateValue = ref(false)
 const inpMsg = ref(null)
 const members = ref([])
 const mysocketId = ref(null)
-console.log('d打印各自仓库的名字', userStore.userInfo.name)
-
-const filterPrivateChatList = ref([])
-const scrollbottom = () => {
-  setTimeout(() => {
-    let el = messageboxRef.value
-    el.scrollTop = el?.scrollHeight
-  }, 100)
-}
-// scrollHeight
-console.log('打印注册信息', userStore.userInfo)
 let socket = io(`http://127.0.0.1:3008`, {
   autoConnect: false
 })
@@ -269,85 +204,80 @@ const logout = () => {
   socket.disconnect() // 断开连接
   router.push('/login')
   userStore.removeUserInfo()
+
+  userStore.removePrivateChatHistory()
+  userStore.removeRoomChatHistory()
 }
 const enterRoom = () => {
-  showChatWindow.value = true
+  isPrivateValue.value = false
   activeIndex.value = index.value
-  // scrollbottom()
-  // socket = io(`http://127.0.0.1:3008`)
-
-  // 连接成功
+  messageBoxPartRef.value.scrollbottom()
 }
 const sendMsg = () => {
   if (!inpMsg.value) {
     ElMessage.error('输入不准为空')
     return
   }
-  const sendform = {
-    myself: true,
-    pic: userStore.userInfo.pic,
-    name: userStore.userInfo.name,
-    msg: inpMsg.value
-  }
-  // chatList.value.push(sendform)
-  userStore.addRoomChatHistory(sendform)
-  console.log('打印群聊信息存储', userStore.roomChatHistory)
+  if (!isPrivateValue.value) {
+    const sendform = {
+      myself: true,
+      pic: userStore.userInfo.pic,
+      name: userStore.userInfo.name,
+      msg: inpMsg.value
+    }
+    // chatList.value.push(sendform)
+    userStore.addRoomChatHistory(sendform)
+    console.log('打印群聊信息存储', userStore.roomChatHistory)
 
-  scrollbottom()
-  socket.emit('message', sendform)
-  inpMsg.value = null
-}
-const privateSend = () => {
-  if (!inpMsg.value) {
-    ElMessage.error('输入不准为空')
-    return
-  }
-  const sendform = {
-    myself: true,
-    pic: userStore.userInfo.pic,
-    name: userStore.userInfo.name,
-    msg: inpMsg.value,
-    id: otoUser.value.id,
-    otoname: otoUser.value.name
-  }
+    // scrollbottom()
+    messageBoxPartRef.value.scrollbottom()
+    socket.emit('message', sendform)
+    inpMsg.value = null
+  } else {
+    const sendform = {
+      myself: true,
+      pic: userStore.userInfo.pic,
+      name: userStore.userInfo.name,
+      msg: inpMsg.value,
+      id: otoUser.value.id,
+      otoname: otoUser.value.name
+    }
 
-  // privateChatList.value.push(sendform)
-  userStore.addprivateChatHistory(sendform)
-  console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
-  //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
-  filterPrivateChatList.value = userStore.privateChatHistory.filter(
-    (item) =>
-      (item.otoname === otoUser.value.name &&
-        item.name === userStore.userInfo.name) ||
-      (item.otoname === userStore.userInfo.name &&
-        item.name === otoUser.value.name)
-  )
-  scrollbottom()
-  socket.emit('sendPrivate', sendform)
-  inpMsg.value = null
+    // privateChatList.value.push(sendform)
+    userStore.addprivateChatHistory(sendform)
+    console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
+    //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
+    let res = userStore.privateChatHistory.filter(
+      (item) =>
+        (item.otoname === otoUser.value.name &&
+          item.name === userStore.userInfo.name) ||
+        (item.otoname === userStore.userInfo.name &&
+          item.name === otoUser.value.name)
+    )
+    userStore.setFilterPrivateChatList(res)
+    // scrollbottom()
+    messageBoxPartRef.value.scrollbottom()
+
+    socket.emit('sendPrivate', sendform)
+    inpMsg.value = null
+  }
 }
+
 const otoChat = (item) => {
-  // privateChatList.value = []
-
-  showChatWindow.value = false
-  scrollbottom()
-  // socket.emit('otoChat', item)
+  isPrivateValue.value = true
+  messageBoxPartRef.value.scrollbottom()
   otoUser.value.name = item.name
   otoUser.value.pic = item.pic
   otoUser.value.id = item.uid
-  // filterPrivateChatList.value = privateChatList.value.filter(
-  //   (item) =>
-  //     item.id === otoUser.value.id ||
-  //     (item.id === mysocketId.value && item.name === otoUser.value.name)
-  // )
   //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
-  filterPrivateChatList.value = userStore.privateChatHistory.filter(
+  let res = userStore.privateChatHistory.filter(
     (item) =>
       (item.otoname === otoUser.value.name &&
         item.name === userStore.userInfo.name) ||
       (item.otoname === userStore.userInfo.name &&
         item.name === otoUser.value.name)
   )
+  userStore.setFilterPrivateChatList(res)
 }
 onMounted(() => {
   socket.connect() // 连接
@@ -358,7 +288,9 @@ onMounted(() => {
     })
 
     socket.emit('join', userStore.userInfo)
-    scrollbottom()
+    // scrollbottom()
+    messageBoxPartRef.value.scrollbottom()
+
     socket.on('welcome', (roommates) => {
       let res = roommates.find((item) => item.name === userStore.userInfo.name)
       mysocketId.value = res?.uid
@@ -394,31 +326,29 @@ onMounted(() => {
       console.log('打印自己的uid', mysocketId)
     })
     socket.on('backMsg', (msg) => {
-      scrollbottom()
+      messageBoxPartRef.value.scrollbottom()
+
       console.log('打印服务器广播的消息', msg)
       // chatList.value.push(msg)
       userStore.addRoomChatHistory(msg)
       console.log('打印群聊信息存储', userStore.roomChatHistory)
     })
     socket.on('backPrivateMsg', (sendform) => {
-      scrollbottom()
+      // scrollbottom()
+      messageBoxPartRef.value.scrollbottom()
+
       console.log('打印服务器一对一私聊返回结果', sendform)
       // privateChatList.value.push(sendform)
       userStore.addprivateChatHistory(sendform)
       console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
-
-      // filterPrivateChatList.value = privateChatList.value.filter(
-      //   (item) =>
-      //     item.id === otoUser.value.id ||
-      //     (item.id === mysocketId.value && item.name === otoUser.value.name)
-      // )
-      filterPrivateChatList.value = userStore.privateChatHistory.filter(
+      let res = userStore.privateChatHistory.filter(
         (item) =>
           (item.otoname === otoUser.value.name &&
             item.name === userStore.userInfo.name) ||
           (item.otoname === userStore.userInfo.name &&
             item.name === otoUser.value.name)
       )
+      userStore.setFilterPrivateChatList(res)
     })
   })
 })
@@ -555,127 +485,127 @@ onMounted(() => {
           border-radius: 16px;
           display: flex;
           flex-direction: column;
-          // overflow: hidden;
-          .messagebox {
-            // background-color: #fff;
-            // flex: 1;
-            width: 100%;
-            height: 500px;
-            overflow-y: auto;
 
-            padding: 0 40px 20px;
-            // overflow: hidden;
-            &::-webkit-scrollbar {
-              width: 0;
-              height: 0;
-              display: none;
-            }
-            .msgBox {
-              width: 100%;
-              min-height: 110px;
-              // background-color: pink;
-              margin-top: 40px;
-              display: flex;
-              .leftMsg {
-                // background-color: gold;
-                min-height: 110px;
-                min-width: 10px;
-                margin-right: auto;
-                // display: inline-block;
-                display: flex;
-                align-items: flex-start;
-                position: relative;
+          // .messagebox {
+          //   // background-color: #fff;
+          //   // flex: 1;
+          //   width: 100%;
+          //   height: 500px;
+          //   overflow-y: auto;
 
-                .avatar {
-                  width: 50px;
-                  height: 50px;
-                  border-radius: 50%;
-                  overflow: hidden;
-                  margin-right: 6px;
-                }
-                .text {
-                  min-height: 70px;
-                  min-width: 50px;
-                  // background-color: goldenrod;
-                  display: flex;
-                  flex-direction: column;
-                  .msg {
-                    margin-top: 10px;
-                    background-color: rgb(66, 70, 86);
+          //   padding: 0 40px 20px;
+          //   // overflow: hidden;
+          //   &::-webkit-scrollbar {
+          //     width: 0;
+          //     height: 0;
+          //     display: none;
+          //   }
+          //   .msgBox {
+          //     width: 100%;
+          //     min-height: 110px;
+          //     // background-color: pink;
+          //     margin-top: 40px;
+          //     display: flex;
+          //     .leftMsg {
+          //       // background-color: gold;
+          //       min-height: 110px;
+          //       min-width: 10px;
+          //       margin-right: auto;
+          //       // display: inline-block;
+          //       display: flex;
+          //       align-items: flex-start;
+          //       position: relative;
 
-                    min-height: 40px;
-                    max-width: 300px;
-                    min-width: 40px;
-                    border-radius: 10px 0 10px 10px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 8px;
-                    color: #fff;
-                    flex-wrap: wrap;
-                  }
-                  .name {
-                    color: #fff;
-                    height: 16px;
-                    font-size: 12px;
-                    min-width: 40px;
-                    font-weight: 600;
-                    // background-color: #ccc;
-                    display: flex;
-                    justify-content: flex-start;
-                  }
-                }
-              }
-              .rightMsg {
-                margin-left: auto;
-                // background-color: gold;
-                min-height: 110px;
-                min-width: 10px;
-                display: flex;
-                align-items: flex-start;
-                position: relative;
-                .avatar {
-                  width: 50px;
-                  height: 50px;
-                  border-radius: 50%;
-                  overflow: hidden;
-                  margin-left: 6px;
-                }
+          //       .avatar {
+          //         width: 50px;
+          //         height: 50px;
+          //         border-radius: 50%;
+          //         overflow: hidden;
+          //         margin-right: 6px;
+          //       }
+          //       .text {
+          //         min-height: 70px;
+          //         min-width: 50px;
+          //         // background-color: goldenrod;
+          //         display: flex;
+          //         flex-direction: column;
+          //         .msg {
+          //           margin-top: 10px;
+          //           background-color: rgb(66, 70, 86);
 
-                .text {
-                  min-height: 70px;
-                  min-width: 50px;
-                  // background-color: goldenrod;
-                  display: flex;
-                  flex-direction: column;
-                  .msg {
-                    margin-top: 10px;
-                    background-color: rgb(29, 144, 245);
-                    min-height: 40px;
-                    max-width: 300px;
-                    min-width: 40px;
-                    border-radius: 10px 0 10px 10px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    padding: 8px;
-                    color: #fff;
-                    flex-wrap: wrap;
-                  }
-                  .name {
-                    color: #fff;
-                    height: 16px;
-                    font-size: 12px;
-                    min-width: 40px;
-                    font-weight: 600;
-                    // background-color: #ccc;
-                    display: flex;
-                    justify-content: flex-end;
-                  }
-                }
-              }
-            }
-          }
+          //           min-height: 40px;
+          //           max-width: 300px;
+          //           min-width: 40px;
+          //           border-radius: 10px 0 10px 10px;
+          //           display: flex;
+          //           justify-content: center;
+          //           align-items: center;
+          //           padding: 8px;
+          //           color: #fff;
+          //           flex-wrap: wrap;
+          //         }
+          //         .name {
+          //           color: #fff;
+          //           height: 16px;
+          //           font-size: 12px;
+          //           min-width: 40px;
+          //           font-weight: 600;
+          //           // background-color: #ccc;
+          //           display: flex;
+          //           justify-content: flex-start;
+          //         }
+          //       }
+          //     }
+          //     .rightMsg {
+          //       margin-left: auto;
+          //       // background-color: gold;
+          //       min-height: 110px;
+          //       min-width: 10px;
+          //       display: flex;
+          //       align-items: flex-start;
+          //       position: relative;
+          //       .avatar {
+          //         width: 50px;
+          //         height: 50px;
+          //         border-radius: 50%;
+          //         overflow: hidden;
+          //         margin-left: 6px;
+          //       }
+
+          //       .text {
+          //         min-height: 70px;
+          //         min-width: 50px;
+          //         // background-color: goldenrod;
+          //         display: flex;
+          //         flex-direction: column;
+          //         .msg {
+          //           margin-top: 10px;
+          //           background-color: rgb(29, 144, 245);
+          //           min-height: 40px;
+          //           max-width: 300px;
+          //           min-width: 40px;
+          //           border-radius: 10px 0 10px 10px;
+          //           display: flex;
+          //           justify-content: center;
+          //           align-items: center;
+          //           padding: 8px;
+          //           color: #fff;
+          //           flex-wrap: wrap;
+          //         }
+          //         .name {
+          //           color: #fff;
+          //           height: 16px;
+          //           font-size: 12px;
+          //           min-width: 40px;
+          //           font-weight: 600;
+          //           // background-color: #ccc;
+          //           display: flex;
+          //           justify-content: flex-end;
+          //         }
+          //       }
+          //     }
+          //   }
+          // }
           .send {
             width: 100%;
             height: 80px;

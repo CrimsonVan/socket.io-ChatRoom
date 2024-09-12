@@ -26,18 +26,24 @@ export const chatRoomUserInfo = defineStore(
     const removePrivateChatHistory = () => {
       privateChatHistory.value = []
     }
+    const filterPrivateChatList = ref([])
+    const setFilterPrivateChatList = (filterArr) => {
+      filterPrivateChatList.value = filterArr
+    }
     //群聊对话
     const roomChatHistory = ref([])
     const addRoomChatHistory = (item) => {
       roomChatHistory.value.push(item)
     }
     const removeRoomChatHistory = () => {
-      privateChatHistory.value = []
+      roomChatHistory.value = []
     }
     return {
       avatar,
       userInfo,
       roomChatHistory,
+      filterPrivateChatList,
+      setFilterPrivateChatList,
       removePrivateChatHistory,
       removeRoomChatHistory,
       addRoomChatHistory,
