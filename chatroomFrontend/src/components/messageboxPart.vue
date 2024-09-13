@@ -15,14 +15,16 @@
           <div
             v-if="item.imgurl"
             class="msg"
-            style="
-              max-width: 240px;
-              background-color: transparent;
-              border-radius: 10px;
-              overflow: hidden;
-            "
+            style="max-width: 180px; background-color: transparent"
           >
-            <div style="height: 100%; width: 100%">
+            <div
+              style="
+                height: 100%;
+                width: 100%;
+                border-radius: 10px;
+                overflow: hidden;
+              "
+            >
               <img
                 style="height: 100%; width: 100%"
                 :src="item.imgurl"
@@ -45,8 +47,19 @@
         <div class="text">
           <div class="name">{{ item.name }}</div>
 
-          <div v-if="item.imgurl" class="msg" style="max-width: 240px">
-            <div style="height: 100%; width: 100%">
+          <div
+            v-if="item.imgurl"
+            class="msg"
+            style="max-width: 180px; background-color: transparent"
+          >
+            <div
+              style="
+                height: 100%;
+                width: 100%;
+                border-radius: 10px;
+                overflow: hidden;
+              "
+            >
               <img
                 style="height: 100%; width: 100%"
                 :src="item.imgurl"

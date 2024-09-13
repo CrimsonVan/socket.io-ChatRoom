@@ -77,17 +77,12 @@ const avatarList = ref([
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/02978c34-7739-40cb-915a-715f044c9e78.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0880c68f-f03d-40ad-9367-e2c638c49ce6.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0eb2f3f0-6810-425d-94fa-344170f595f4.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/2c001113-0290-4ffa-9820-8d3085b3f21c.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0eb2f3f0-6810-425d-94fa-344170f595f4.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/2c001113-0290-4ffa-9820-8d3085b3f21c.png'
 ])
 const goHome = () => {
   if (username.value) {
-    // localStorage.setItem(
-    //   'userInfo',
-    //   JSON.stringify({
-    //     name: username.value,
-    //     pic: 'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/head_portrait1.jpg'
-    //   })
-    // )
     userStore.setUserInfo(username.value, pic)
     router.push('/')
   } else {
@@ -175,12 +170,13 @@ const selectAvatar = () => {
           width: 80%;
           height: 50px;
           border-radius: 14px;
-          padding: 0px auto;
+          padding: 10px;
           border: 2px solid rgb(34, 135, 225);
           background-color: rgb(66, 70, 86);
           font-size: 20px;
           color: #fff;
           font-weight: 100;
+          text-align: center;
           &:focus {
             outline: none;
           }

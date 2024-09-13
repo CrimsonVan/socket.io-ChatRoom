@@ -19,7 +19,7 @@
         </div>
         <div class="list">
           <div class="leftTitle" style="color: #fff">
-            <h2>贝壳网络趣味聊天室</h2>
+            <h2>网络实时聊天室</h2>
           </div>
           <div class="roomList">
             <div
@@ -126,14 +126,14 @@
                 <div class="sendBtn" @click="sendMsg">
                   <img
                     style="width: 65%; height: 65%"
-                    src="../../assets/images/img/emoji/rocket.png"
+                    src="https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/rocket.png"
                     alt=""
                   />
                 </div>
                 <div class="sendBtn">
                   <img
                     style="width: 100%; height: 90%; text-align: center"
-                    src="../../assets/images/img/相机.png"
+                    src="https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/相机.png"
                     alt=""
                   />
                   <input
@@ -187,7 +187,7 @@
                     <template #reference>
                       <img
                         style="width: 86%; height: 80%; text-align: center"
-                        src="../../assets/images/img/emoji/clown-face.png"
+                        src="https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/clown-face.png"
                         alt=""
                       />
                     </template>
