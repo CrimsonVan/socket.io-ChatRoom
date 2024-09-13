@@ -105,7 +105,7 @@
                 />
               </div>
               <span style="color: #fff; margin-left: 20px; font-weight: 400"
-                >AI小天才</span
+                >AI小天</span
               >
             </div>
           </div>
@@ -207,7 +207,7 @@
                         /* background-color: rgb(29, 144, 245); */
 
                         width: 100%;
-                        height: 160px;
+                        min-height: 160px;
 
                         display: flex;
                         flex-wrap: wrap;
@@ -306,7 +306,11 @@ const emojiList = ref([
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-with-tongue.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/clown-face.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-screaming-in-fear.png',
-  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/slightly-smiling-face.png'
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/slightly-smiling-face.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/victory-hand-yellow.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/tired-face.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/thumbs-up-yellow.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/thinking-face.png'
 ])
 const openEmoji = () => {
   if (isAI.value) {
@@ -437,14 +441,14 @@ const sendMsg = async () => {
       socket.send(JSON.stringify(params))
     }
     const AISendMsg = {
-      name: 'AI小天才',
+      name: 'AI小天',
       msg: '',
       pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
     }
     let AIreply = ''
     socket.addEventListener('message', (event) => {
       let data = JSON.parse(event.data)
-      console.log('收到消息！！', data)
+
       // requestObj.sparkResult += data.payload.choices.text[0].content
       if (data.header.code !== 0) {
         isThinking.value = false
@@ -460,10 +464,11 @@ const sendMsg = async () => {
         //ai输出第一句话时候
         if (data.payload.choices.text && data.header.status === 0) {
           isThinking.value = false
-          AISendMsg.msg = data.payload.choices.text[0].content
           AIreply = data.payload.choices.text[0].content
+          console.log('打印AIreply', AIreply)
+
+          AISendMsg.msg = AIreply
           userStore.addAIchatlist(AISendMsg)
-          console.log('打印长度减一', userStore.AIchatlength)
 
           messageBoxPartRef.value.scrollbottom()
         }

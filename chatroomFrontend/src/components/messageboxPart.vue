@@ -155,6 +155,10 @@ const scrollbottom = () => {
 defineExpose({
   scrollbottom
 })
+let str =
+  '以下是使用JavaScript编写的冒泡排序算法：\n\n```javascript\nfunction bubbleSort(arr) {\n var len ='
+str = str.replace(/\n/g, '')
+console.log('测试字符串str', str)
 </script>
 <style lang="scss" scoped>
 .messagebox {

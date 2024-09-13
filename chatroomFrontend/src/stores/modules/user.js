@@ -44,27 +44,6 @@ export const chatRoomUserInfo = defineStore(
         name: 'AI小天才',
         msg: '你好有什么问题尽管问我哈',
         pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
-      },
-      { name: 'ss', msg: '你好AI' },
-      {
-        name: 'AI小天才',
-        msg: '你好1',
-        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
-      },
-      {
-        name: 'AI小天才',
-        msg: '你好2',
-        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
-      },
-      {
-        name: 'AI小天才',
-        msg: '你好3',
-        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
-      },
-      {
-        name: 'AI小天才',
-        msg: '你好4',
-        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
       }
     ])
     const AIchatlength = computed(() => AIchatlist.value.length - 1)
@@ -72,7 +51,13 @@ export const chatRoomUserInfo = defineStore(
       AIchatlist.value.push(item)
     }
     const removeAIchatlist = () => {
-      AIchatlist.value = []
+      AIchatlist.value = [
+        {
+          name: 'AI小天',
+          msg: '你好我是AI小天!有什么问题尽管问我哈',
+          pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+        }
+      ]
     }
     return {
       AIchatlist,
