@@ -11,7 +11,26 @@
       <div v-if="item.name === userStore.userInfo.name" class="rightMsg">
         <div class="text">
           <div class="name">{{ item.name }}</div>
-          <div class="msg">{{ item.msg }}</div>
+
+          <div
+            v-if="item.imgurl"
+            class="msg"
+            style="
+              max-width: 240px;
+              background-color: transparent;
+              border-radius: 10px;
+              overflow: hidden;
+            "
+          >
+            <div style="height: 100%; width: 100%">
+              <img
+                style="height: 100%; width: 100%"
+                :src="item.imgurl"
+                alt=""
+              />
+            </div>
+          </div>
+          <div v-else class="msg">{{ item.msg }}</div>
         </div>
 
         <div class="avatar">
@@ -25,7 +44,17 @@
         </div>
         <div class="text">
           <div class="name">{{ item.name }}</div>
-          <div class="msg">{{ item.msg }}</div>
+
+          <div v-if="item.imgurl" class="msg" style="max-width: 240px">
+            <div style="height: 100%; width: 100%">
+              <img
+                style="height: 100%; width: 100%"
+                :src="item.imgurl"
+                alt=""
+              />
+            </div>
+          </div>
+          <div v-else class="msg">{{ item.msg }}</div>
         </div>
       </div>
     </div>
@@ -43,6 +72,8 @@ defineProps({
 const userStore = chatRoomUserInfo()
 const messageboxRef = ref('')
 const scrollbottom = () => {
+  console.log('')
+
   setTimeout(() => {
     let el = messageboxRef.value
     if (el?.scrollHeight) {

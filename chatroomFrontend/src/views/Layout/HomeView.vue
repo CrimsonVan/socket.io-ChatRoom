@@ -84,14 +84,15 @@
         </div>
       </div>
       <!-- 群聊区域 -->
-      <div v-if="true" class="rightWindow">
+      <div class="rightWindow">
         <!-- 聊天室名称 -->
         <div v-if="!isPrivateValue" class="roomTitle">
           <div class="titlespace">
             <avatarPart></avatarPart>
-            <div class="roomName">嗨皮群聊</div>
+            <div class="roomName">嗨皮群聊({{ chatRoomNum }})</div>
           </div>
         </div>
+        <!-- 聊天对象名字 -->
         <div v-else class="roomTitle">
           <div class="titlespace">
             <div
@@ -118,47 +119,6 @@
               :isPrivate="isPrivateValue"
               ref="messageBoxPartRef"
             ></messageboxPart>
-            <!-- <div ref="messageboxRef" class="messagebox">
-              <div
-                class="msgBox"
-                v-for="(item, index) in userStore.roomChatHistory"
-                :key="index"
-              >
-         
-                <div
-                  v-if="item.name === userStore.userInfo.name"
-                  class="rightMsg"
-                >
-                  <div class="text">
-                    <div class="name">{{ item.name }}</div>
-                    <div class="msg">{{ item.msg }}</div>
-                  </div>
-
-                  <div class="avatar">
-                    <img
-                      style="height: 100%; width: 100%"
-                      :src="item.pic"
-                      alt=""
-                    />
-                  </div>
-                </div>
-          
-                <div v-else class="leftMsg">
-                  <div class="avatar">
-                    <img
-                      style="height: 100%; width: 100%"
-                      :src="item.pic"
-                      alt=""
-                    />
-                  </div>
-                  <div class="text">
-                    <div class="name">{{ item.name }}</div>
-                    <div class="msg">{{ item.msg }}</div>
-                  </div>
-                </div>
-              </div>
-            </div> -->
-
             <!-- 发送按钮 -->
             <div class="send">
               <div class="chatInputs">
@@ -169,6 +129,69 @@
                     src="../../assets/images/img/emoji/rocket.png"
                     alt=""
                   />
+                </div>
+                <div class="sendBtn">
+                  <img
+                    style="width: 100%; height: 90%; text-align: center"
+                    src="../../assets/images/img/相机.png"
+                    alt=""
+                  />
+                  <input
+                    class="inputImg"
+                    style="height: 50px; width: 50px"
+                    @change="sendImg($event)"
+                    type="file"
+                  />
+                </div>
+
+                <div class="sendBtn">
+                  <el-popover
+                    popper-class="monitor-yt-popover"
+                    placement="top-start"
+                    :width="400"
+                    @click="openEmoji"
+                    v-model:visible="isEmojiVisible"
+                  >
+                    <div
+                      style="
+                        /* background-color: rgb(29, 144, 245); */
+
+                        width: 100%;
+                        height: 160px;
+
+                        display: flex;
+                        flex-wrap: wrap;
+                      "
+                    >
+                      <div
+                        v-for="(item, index) in emojiList"
+                        :key="index"
+                        style="
+                          width: 20%;
+                          height: 80px;
+
+                          cursor: pointer;
+                          display: flex;
+                          justify-content: center;
+                          align-items: center;
+                        "
+                      >
+                        <img
+                          @click="sendEmoji(item)"
+                          style="width: 85%; height: 82%"
+                          :src="item"
+                          alt=""
+                        />
+                      </div>
+                    </div>
+                    <template #reference>
+                      <img
+                        style="width: 86%; height: 80%; text-align: center"
+                        src="../../assets/images/img/emoji/clown-face.png"
+                        alt=""
+                      />
+                    </template>
+                  </el-popover>
                 </div>
               </div>
             </div>
@@ -186,10 +209,13 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftBold } from '@element-plus/icons-vue'
 import { chatRoomUserInfo } from '@/stores/modules/user'
 import messageboxPart from '@/components/messageboxPart.vue'
+// import { isVisible } from 'element-plus/es/utils'
 const router = useRouter()
 const messageBoxPartRef = ref('')
 const userStore = chatRoomUserInfo()
+const isEmojiVisible = ref(false)
 // const showChatWindow = ref(true)
+const chatRoomNum = ref(0)
 const otoUser = ref({})
 const activeIndex = ref(0)
 const index = ref(1)
@@ -197,9 +223,25 @@ const isPrivateValue = ref(false)
 const inpMsg = ref(null)
 const members = ref([])
 const mysocketId = ref(null)
+const imgurl = ref(null)
+const emojiList = ref([
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-vomiting.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/lips.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/jack-o-lantern.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/loudly-crying-face.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/ghost.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-with-tongue.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/clown-face.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-screaming-in-fear.png',
+  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/slightly-smiling-face.png'
+])
+const openEmoji = () => {
+  isEmojiVisible.value = true
+}
 let socket = io(`http://127.0.0.1:3008`, {
   autoConnect: false
 })
+
 const logout = () => {
   socket.disconnect() // 断开连接
   router.push('/login')
@@ -213,8 +255,9 @@ const enterRoom = () => {
   activeIndex.value = index.value
   messageBoxPartRef.value.scrollbottom()
 }
+
 const sendMsg = () => {
-  if (!inpMsg.value) {
+  if (!inpMsg.value && !imgurl.value) {
     ElMessage.error('输入不准为空')
     return
   }
@@ -224,6 +267,9 @@ const sendMsg = () => {
       pic: userStore.userInfo.pic,
       name: userStore.userInfo.name,
       msg: inpMsg.value
+    }
+    if (imgurl.value) {
+      sendform.imgurl = imgurl.value
     }
     // chatList.value.push(sendform)
     userStore.addRoomChatHistory(sendform)
@@ -242,9 +288,12 @@ const sendMsg = () => {
       id: otoUser.value.id,
       otoname: otoUser.value.name
     }
-
+    if (imgurl.value) {
+      sendform.imgurl = imgurl.value
+    }
     // privateChatList.value.push(sendform)
     userStore.addprivateChatHistory(sendform)
+
     console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
     //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
     let res = userStore.privateChatHistory.filter(
@@ -262,7 +311,27 @@ const sendMsg = () => {
     inpMsg.value = null
   }
 }
+const sendImg = (event) => {
+  let selectedFile = event.target.files[0]
+  console.log('打印上传图片', event.target.files[0])
+  let fr = new FileReader()
+  fr.readAsDataURL(selectedFile)
+  fr.onload = function () {
+    console.log('打印base64格式图片', fr.result)
+    if (fr.result) {
+      imgurl.value = fr.result
+      sendMsg()
+      imgurl.value = null
+    }
+  }
+}
+const sendEmoji = (item) => {
+  isEmojiVisible.value = false
+  imgurl.value = item
+  sendMsg()
 
+  imgurl.value = null
+}
 const otoChat = (item) => {
   isPrivateValue.value = true
   messageBoxPartRef.value.scrollbottom()
@@ -292,6 +361,7 @@ onMounted(() => {
     messageBoxPartRef.value.scrollbottom()
 
     socket.on('welcome', (roommates) => {
+      chatRoomNum.value = roommates.length
       let res = roommates.find((item) => item.name === userStore.userInfo.name)
       mysocketId.value = res?.uid
       members.value = roommates.filter(
@@ -311,6 +381,7 @@ onMounted(() => {
       // mysocketId.value = roommates.find(
       //   (item) => item.name === userStore.userInfo.name
       // ).uid
+      chatRoomNum.value = roommates.length
       let res = roommates.find((item) => item.name === userStore.userInfo.name)
       mysocketId.value = res?.uid
       members.value = roommates.filter(
@@ -337,10 +408,10 @@ onMounted(() => {
       // scrollbottom()
       messageBoxPartRef.value.scrollbottom()
 
-      console.log('打印服务器一对一私聊返回结果', sendform)
+      // console.log('打印服务器一对一私聊返回结果', sendform)
       // privateChatList.value.push(sendform)
       userStore.addprivateChatHistory(sendform)
-      console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
+      console.log('private长度', userStore.privateChatHistory.length)
       let res = userStore.privateChatHistory.filter(
         (item) =>
           (item.otoname === otoUser.value.name &&
@@ -349,6 +420,7 @@ onMounted(() => {
             item.name === otoUser.value.name)
       )
       userStore.setFilterPrivateChatList(res)
+      console.log('filterPrivate长度', userStore.filterPrivateChatList.length)
     })
   })
 })
@@ -462,7 +534,7 @@ onMounted(() => {
             }
           }
           .roomName {
-            width: 80px;
+            min-width: 80px;
             height: 40px;
             margin-left: 20px;
             margin-top: 5px;
@@ -620,7 +692,7 @@ onMounted(() => {
               display: flex;
               justify-content: space-around;
               .inp {
-                width: 90%;
+                width: 76%;
                 height: 50px;
                 background-color: rgb(66, 70, 86);
                 border-radius: 12px;
@@ -634,6 +706,7 @@ onMounted(() => {
                   outline: none;
                 }
               }
+
               .sendBtn {
                 background-color: rgb(29, 144, 245);
                 height: 50px;
@@ -645,6 +718,17 @@ onMounted(() => {
                 transition: 0.3s;
                 box-shadow: 0px 0px 5px 0px rgba(0, 136, 255);
                 cursor: pointer;
+                position: relative;
+
+                .inputImg {
+                  position: absolute;
+                  top: 0;
+                  bottom: 0;
+                  bottom: 0;
+                  right: 0;
+                  opacity: 0;
+                  cursor: pointer;
+                }
                 &:hover {
                   box-shadow: 0px 0px 10px 0px rgba(0, 136, 255);
                 }
@@ -655,5 +739,11 @@ onMounted(() => {
       }
     }
   }
+}
+</style>
+<style>
+.el-popover.monitor-yt-popover {
+  border-color: rgb(29, 144, 245);
+  background-color: rgb(29, 144, 245);
 }
 </style>

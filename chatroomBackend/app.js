@@ -24,7 +24,8 @@ io.on("connection", (socket) => {
         members[findone].uid=socket.id
     }else{
        userInfo.uid=socket.id
-        members.push(userInfo) 
+        members.push(userInfo)
+ 
     }
        console.log('打印members长度',members.length);
        
@@ -41,6 +42,8 @@ io.on("connection", (socket) => {
   socket.on('sendPrivate', sendform=>{
     console.log('打印oto的sendform',sendform); 
     // const targetSocket = io.sockets.get(sendform.id)
+    console.log('打印私聊时候的人数',members.length);
+    
     socket.to(sendform.id).emit('backPrivateMsg',sendform)
     // console.log('打印target',targetSocket);
     
@@ -56,15 +59,11 @@ io.on("connection", (socket) => {
         console.log('打印已经退出的index',findone);
         members.splice(findone,1)
         console.log('打印断开删除后的数组长度',members.length);
-     
+        socket.emit("myself",members);
         socket.broadcast.emit("welcome",members);
         
       });
 });
-// io.on('disconnect',()=>{
-//     console.log('有人断开了');
-    
-// })
 httpServer.listen(3008,()=>{
     console.log('启动服务器127.0.0.1:3008成功');
     
