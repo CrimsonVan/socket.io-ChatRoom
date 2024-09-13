@@ -1,5 +1,5 @@
 <template>
-  <div ref="messageboxRef" class="messagebox">
+  <div v-if="!isAI" ref="messageboxRef" class="messagebox">
     <div
       class="msgBox"
       v-for="(item, index) in isPrivate
@@ -72,6 +72,51 @@
       </div>
     </div>
   </div>
+  <div v-else ref="messageboxRef" class="messagebox">
+    <div
+      class="msgBox"
+      v-for="(item, index) in userStore.AIchatlist"
+      :key="index"
+    >
+      <!-- 我的信xi -->
+      <div v-if="item.name === userStore.userInfo.name" class="rightMsg">
+        <div class="text">
+          <div class="name">{{ item.name }}</div>
+          <div class="msg">{{ item.msg }}</div>
+        </div>
+
+        <div class="avatar">
+          <img style="height: 100%; width: 100%" :src="item.pic" alt="" />
+        </div>
+      </div>
+
+      <!-- AI信息 -->
+      <div v-else class="leftMsg">
+        <div class="avatar">
+          <img style="height: 100%; width: 100%" :src="item.pic" alt="" />
+        </div>
+        <div class="text">
+          <div class="name">{{ item.name }}</div>
+
+          <div class="msg">{{ item.msg }}</div>
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="isThinking"
+      style="
+        width: 100%;
+        height: 10px;
+        margin-top: 25px;
+        text-align: center;
+        line-height: 10px;
+        color: #fff;
+        margin-bottom: 20px;
+      "
+    >
+      AI小天正在思考中捏,亲稍等会哈...
+    </div>
+  </div>
 </template>
 <script setup>
 import { ref } from 'vue'
@@ -80,8 +125,17 @@ defineProps({
   isPrivate: {
     type: Boolean,
     default: false
+  },
+  isAI: {
+    type: Boolean,
+    default: false
+  },
+  isThinking: {
+    type: Boolean,
+    default: false
   }
 })
+
 const userStore = chatRoomUserInfo()
 const messageboxRef = ref('')
 const scrollbottom = () => {
@@ -119,13 +173,12 @@ defineExpose({
   }
   .msgBox {
     width: 100%;
-    min-height: 110px;
-    // background-color: pink;
-    margin-top: 40px;
+    min-height: 50px;
+    margin-top: 20px;
     display: flex;
     .leftMsg {
       // background-color: gold;
-      min-height: 110px;
+      min-height: 50px;
       min-width: 10px;
       margin-right: auto;
       // display: inline-block;
@@ -141,7 +194,7 @@ defineExpose({
         margin-right: 6px;
       }
       .text {
-        min-height: 70px;
+        min-height: 50px;
         min-width: 50px;
         // background-color: goldenrod;
         display: flex;
@@ -150,7 +203,7 @@ defineExpose({
           margin-top: 10px;
           background-color: rgb(66, 70, 86);
 
-          min-height: 40px;
+          min-height: 50px;
           max-width: 300px;
           min-width: 40px;
           border-radius: 10px 0 10px 10px;
@@ -176,7 +229,7 @@ defineExpose({
     .rightMsg {
       margin-left: auto;
       // background-color: gold;
-      min-height: 110px;
+      min-height: 50px;
       min-width: 10px;
       display: flex;
       align-items: flex-start;
@@ -190,7 +243,7 @@ defineExpose({
       }
 
       .text {
-        min-height: 70px;
+        min-height: 50px;
         min-width: 50px;
         // background-color: goldenrod;
         display: flex;

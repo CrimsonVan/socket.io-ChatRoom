@@ -77,9 +77,10 @@ const avatarList = ref([
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/02978c34-7739-40cb-915a-715f044c9e78.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0880c68f-f03d-40ad-9367-e2c638c49ce6.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0eb2f3f0-6810-425d-94fa-344170f595f4.png',
-  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/2c001113-0290-4ffa-9820-8d3085b3f21c.png',
-  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/0eb2f3f0-6810-425d-94fa-344170f595f4.png',
-  'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/cloudstorage/2c001113-0290-4ffa-9820-8d3085b3f21c.png'
+  'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/777e0e48-0fb5-4980-b875-689a9df1201a.png',
+  'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/The Batman.png',
+  'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/害羞超人.png',
+  'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/阿也AHYEA-数字大赛3.png'
 ])
 const goHome = () => {
   if (username.value) {

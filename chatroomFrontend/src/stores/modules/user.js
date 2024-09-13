@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const chatRoomUserInfo = defineStore(
@@ -38,11 +38,51 @@ export const chatRoomUserInfo = defineStore(
     const removeRoomChatHistory = () => {
       roomChatHistory.value = []
     }
+    //和ai的聊天历史
+    const AIchatlist = ref([
+      {
+        name: 'AI小天才',
+        msg: '你好有什么问题尽管问我哈',
+        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+      },
+      { name: 'ss', msg: '你好AI' },
+      {
+        name: 'AI小天才',
+        msg: '你好1',
+        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+      },
+      {
+        name: 'AI小天才',
+        msg: '你好2',
+        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+      },
+      {
+        name: 'AI小天才',
+        msg: '你好3',
+        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+      },
+      {
+        name: 'AI小天才',
+        msg: '你好4',
+        pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+      }
+    ])
+    const AIchatlength = computed(() => AIchatlist.value.length - 1)
+    const addAIchatlist = (item) => {
+      AIchatlist.value.push(item)
+    }
+    const removeAIchatlist = () => {
+      AIchatlist.value = []
+    }
     return {
+      AIchatlist,
       avatar,
       userInfo,
       roomChatHistory,
       filterPrivateChatList,
+      AIchatlength,
+      addAIchatlist,
+      removeAIchatlist,
       setFilterPrivateChatList,
       removePrivateChatHistory,
       removeRoomChatHistory,

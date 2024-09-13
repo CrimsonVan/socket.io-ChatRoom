@@ -80,16 +80,64 @@
                 >(我){{ mysocketId }}</span
               >
             </div>
+            <div
+              style="
+                margin-bottom: 10px;
+                margin-top: 20px;
+                color: rgb(176, 178, 189);
+              "
+            >
+              AI小天才
+            </div>
+            <div @click="chatToAI" class="roomEnter" style="margin-top: 10px">
+              <div
+                style="
+                  height: 50px;
+                  width: 50px;
+                  border-radius: 50%;
+                  overflow: hidden;
+                "
+              >
+                <img
+                  style="height: 100%; width: 100%; background-color: #fff"
+                  src="https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png"
+                  alt=""
+                />
+              </div>
+              <span style="color: #fff; margin-left: 20px; font-weight: 400"
+                >AI小天才</span
+              >
+            </div>
           </div>
         </div>
       </div>
       <!-- 群聊区域 -->
       <div class="rightWindow">
         <!-- 聊天室名称 -->
-        <div v-if="!isPrivateValue" class="roomTitle">
+        <div v-if="!isPrivateValue && !isAI" class="roomTitle">
           <div class="titlespace">
             <avatarPart></avatarPart>
             <div class="roomName">嗨皮群聊({{ chatRoomNum }})</div>
+          </div>
+        </div>
+        <!-- AI名字 -->
+        <div v-else-if="isAI" class="roomTitle">
+          <div class="titlespace">
+            <div
+              style="
+                height: 50px;
+                width: 50px;
+                border-radius: 50%;
+                overflow: hidden;
+              "
+            >
+              <img
+                style="height: 100%; width: 100%"
+                src="https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png"
+                alt=""
+              />
+            </div>
+            <div class="roomName">AI小天</div>
           </div>
         </div>
         <!-- 聊天对象名字 -->
@@ -117,10 +165,13 @@
           <div class="chatroom">
             <messageboxPart
               :isPrivate="isPrivateValue"
+              :isAI="isAI"
+              :isThinking="isThinking"
               ref="messageBoxPartRef"
             ></messageboxPart>
             <!-- 发送按钮 -->
-            <div class="send">
+            <!-- 非AI版本 -->
+            <div v-if="!isAI" class="send">
               <div class="chatInputs">
                 <input v-model="inpMsg" class="inp" />
                 <div class="sendBtn" @click="sendMsg">
@@ -143,7 +194,6 @@
                     type="file"
                   />
                 </div>
-
                 <div class="sendBtn">
                   <el-popover
                     popper-class="monitor-yt-popover"
@@ -195,6 +245,19 @@
                 </div>
               </div>
             </div>
+            <!-- AI版本 -->
+            <div v-else class="send">
+              <div class="chatInputs">
+                <input v-model="inpMsg" style="width: 92%" class="inp" />
+                <div class="sendBtn" @click="sendMsg">
+                  <img
+                    style="width: 65%; height: 65%"
+                    src="https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/rocket.png"
+                    alt=""
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -209,12 +272,15 @@ import { useRouter } from 'vue-router'
 import { ArrowLeftBold } from '@element-plus/icons-vue'
 import { chatRoomUserInfo } from '@/stores/modules/user'
 import messageboxPart from '@/components/messageboxPart.vue'
+import * as base64 from 'base-64'
+import CryptoJs from 'crypto-js'
 // import { isVisible } from 'element-plus/es/utils'
 const router = useRouter()
 const messageBoxPartRef = ref('')
 const userStore = chatRoomUserInfo()
 const isEmojiVisible = ref(false)
-// const showChatWindow = ref(true)
+const isThinking = ref(false)
+const isAI = ref(false)
 const chatRoomNum = ref(0)
 const otoUser = ref({})
 const activeIndex = ref(0)
@@ -224,6 +290,13 @@ const inpMsg = ref(null)
 const members = ref([])
 const mysocketId = ref(null)
 const imgurl = ref(null)
+let requestObj = {
+  APPID: '030bc106',
+  APISecret: 'Mjg0MmNiYTExOWQxMzY4OTM5MDE1ZTE2',
+  APIKey: 'dba9b5fea20fd102ec1e854547e56d4f',
+  Uid: 'red润',
+  sparkResult: ''
+}
 const emojiList = ref([
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/face-vomiting.png',
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/lips.png',
@@ -236,6 +309,9 @@ const emojiList = ref([
   'https://mp-e0d15f0f-d6bf-4f95-b183-b82aede04535.cdn.bspapp.com/emoji/slightly-smiling-face.png'
 ])
 const openEmoji = () => {
+  if (isAI.value) {
+    return
+  }
   isEmojiVisible.value = true
 }
 let socket = io(`http://127.0.0.1:3008`, {
@@ -249,69 +325,223 @@ const logout = () => {
 
   userStore.removePrivateChatHistory()
   userStore.removeRoomChatHistory()
+  userStore.removeAIchatlist()
 }
 const enterRoom = () => {
+  isAI.value = false
   isPrivateValue.value = false
   activeIndex.value = index.value
   messageBoxPartRef.value.scrollbottom()
 }
 
-const sendMsg = () => {
+const sendMsg = async () => {
   if (!inpMsg.value && !imgurl.value) {
     ElMessage.error('输入不准为空')
     return
   }
-  if (!isPrivateValue.value) {
-    const sendform = {
-      myself: true,
-      pic: userStore.userInfo.pic,
-      name: userStore.userInfo.name,
-      msg: inpMsg.value
-    }
-    if (imgurl.value) {
-      sendform.imgurl = imgurl.value
-    }
-    // chatList.value.push(sendform)
-    userStore.addRoomChatHistory(sendform)
-    console.log('打印群聊信息存储', userStore.roomChatHistory)
+  // console.log('打印ai', isAI.value)
+  if (!isAI.value) {
+    if (!isPrivateValue.value) {
+      const sendform = {
+        myself: true,
+        pic: userStore.userInfo.pic,
+        name: userStore.userInfo.name,
+        msg: inpMsg.value
+      }
+      if (imgurl.value) {
+        sendform.imgurl = imgurl.value
+      }
+      // chatList.value.push(sendform)
+      userStore.addRoomChatHistory(sendform)
+      console.log('打印群聊信息存储', userStore.roomChatHistory)
 
-    // scrollbottom()
-    messageBoxPartRef.value.scrollbottom()
-    socket.emit('message', sendform)
-    inpMsg.value = null
+      // scrollbottom()
+      messageBoxPartRef.value.scrollbottom()
+      socket.emit('message', sendform)
+      inpMsg.value = null
+    } else {
+      const sendform = {
+        myself: true,
+        pic: userStore.userInfo.pic,
+        name: userStore.userInfo.name,
+        msg: inpMsg.value,
+        id: otoUser.value.id,
+        otoname: otoUser.value.name
+      }
+      if (imgurl.value) {
+        sendform.imgurl = imgurl.value
+      }
+      // privateChatList.value.push(sendform)
+      userStore.addprivateChatHistory(sendform)
+
+      console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
+      //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
+      let res = userStore.privateChatHistory.filter(
+        (item) =>
+          (item.otoname === otoUser.value.name &&
+            item.name === userStore.userInfo.name) ||
+          (item.otoname === userStore.userInfo.name &&
+            item.name === otoUser.value.name)
+      )
+      userStore.setFilterPrivateChatList(res)
+      // scrollbottom()
+      messageBoxPartRef.value.scrollbottom()
+
+      socket.emit('sendPrivate', sendform)
+      inpMsg.value = null
+    }
   } else {
-    const sendform = {
-      myself: true,
-      pic: userStore.userInfo.pic,
+    isThinking.value = true
+    console.log('开始和ai对话')
+    const sendMsg = {
       name: userStore.userInfo.name,
       msg: inpMsg.value,
-      id: otoUser.value.id,
-      otoname: otoUser.value.name
+      pic: userStore.userInfo.pic
     }
-    if (imgurl.value) {
-      sendform.imgurl = imgurl.value
-    }
-    // privateChatList.value.push(sendform)
-    userStore.addprivateChatHistory(sendform)
-
-    console.log('打印pinia里的历史一对一对话', userStore.privateChatHistory)
-    //过滤后只有 我发给现在的聊天对象的 和 现在的聊天对象发给我的 对话列表
-    let res = userStore.privateChatHistory.filter(
-      (item) =>
-        (item.otoname === otoUser.value.name &&
-          item.name === userStore.userInfo.name) ||
-        (item.otoname === userStore.userInfo.name &&
-          item.name === otoUser.value.name)
-    )
-    userStore.setFilterPrivateChatList(res)
-    // scrollbottom()
+    userStore.addAIchatlist(sendMsg)
+    inpMsg.value = ''
     messageBoxPartRef.value.scrollbottom()
+    let myUrl = await getWebsocketUrl()
+    console.log('测试获取myUrl', myUrl)
+    let socket = new WebSocket(myUrl)
+    socket.onopen = (event) => {
+      console.log('开启连接！！', event)
 
-    socket.emit('sendPrivate', sendform)
-    inpMsg.value = null
+      // 发送消息
+      let params = {
+        header: {
+          app_id: requestObj.APPID,
+          uid: 'redrun'
+        },
+        parameter: {
+          chat: {
+            domain: 'general',
+            temperature: 0.5,
+            max_tokens: 1024
+          }
+        },
+        payload: {
+          message: {
+            // 如果想获取结合上下文的回答，需要开发者每次将历史问答信息一起传给服务端，如下示例
+            // 注意：text里面的所有content内容加一起的tokens需要控制在8192以内，开发者如有较长对话需求，需要适当裁剪历史信息
+            text: [
+              { role: 'user', content: '你是谁' }, //# 用户的历史问题
+              { role: 'assistant', content: '我是AI助手' }, //# AI的历史回答结果
+              // ....... 省略的历史对话
+              { role: 'user', content: sendMsg.msg } //# 最新的一条问题，如无需上下文，可只传最新一条问题
+            ]
+          }
+        }
+      }
+      console.log('发送消息')
+      socket.send(JSON.stringify(params))
+    }
+    const AISendMsg = {
+      name: 'AI小天才',
+      msg: '',
+      pic: 'https://mp-e8bb14f6-55c1-481a-9c68-bae5900cd604.cdn.bspapp.com/avatar/智能机器人 - 副本.png'
+    }
+    let AIreply = ''
+    socket.addEventListener('message', (event) => {
+      let data = JSON.parse(event.data)
+      console.log('收到消息！！', data)
+      // requestObj.sparkResult += data.payload.choices.text[0].content
+      if (data.header.code !== 0) {
+        isThinking.value = false
+        console.log('出错了', data.header.code, ':', data.header.message)
+        AISendMsg.msg = data.header.message
+        userStore.addAIchatlist(AISendMsg)
+        messageBoxPartRef.value.scrollbottom()
+
+        // 出错了"手动关闭连接"
+        socket.close()
+      }
+      if (data.header.code === 0) {
+        //ai输出第一句话时候
+        if (data.payload.choices.text && data.header.status === 0) {
+          isThinking.value = false
+          AISendMsg.msg = data.payload.choices.text[0].content
+          AIreply = data.payload.choices.text[0].content
+          userStore.addAIchatlist(AISendMsg)
+          console.log('打印长度减一', userStore.AIchatlength)
+
+          messageBoxPartRef.value.scrollbottom()
+        }
+        //ai发送进行中
+        if (data.payload.choices.text && data.header.status === 1) {
+          AIreply += data.payload.choices.text[0].content
+          console.log('打印AIreply', AIreply)
+
+          userStore.AIchatlist[userStore.AIchatlength].msg = AIreply
+          messageBoxPartRef.value.scrollbottom()
+        }
+        // 对话已经完成
+        if (data.payload.choices.text && data.header.status === 2) {
+          AIreply += data.payload.choices.text[0].content
+          console.log('打印AIreply', AIreply)
+
+          userStore.AIchatlist[userStore.AIchatlength].msg = AIreply
+          // requestObj.sparkResult += data.payload.choices.text[0].content;
+          setTimeout(() => {
+            // "对话完成，手动关闭连接"
+            AIreply = ''
+            socket.close()
+          }, 1000)
+
+          messageBoxPartRef.value.scrollbottom()
+        }
+      }
+      // addMsgToTextarea(requestObj.sparkResult);
+    })
+    socket.addEventListener('close', (event) => {
+      console.log('连接关闭！！', event)
+      // 对话完成后socket会关闭，将聊天记录换行处理
+      // requestObj.sparkResult = requestObj.sparkResult + "&#10;"
+      // addMsgToTextarea(requestObj.sparkResult);
+      // 清空输入框
+      // questionInput.value = ''
+    })
+    socket.addEventListener('error', (event) => {
+      console.log('连接发送错误！！', event)
+    })
   }
 }
+// 鉴权url地址
+const getWebsocketUrl = () => {
+  return new Promise((resovle) => {
+    let url = 'wss://spark-api.xf-yun.com/v1.1/chat'
+    // let url = "wss://spark-api.xf-yun.com/v3/chat";
+
+    let host = 'spark-api.xf-yun.com'
+    let apiKeyName = 'api_key'
+    let date = new Date().toGMTString()
+    let algorithm = 'hmac-sha256'
+    let headers = 'host date request-line'
+    let signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v1.1/chat HTTP/1.1`
+    // let signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v3/chat HTTP/3`;
+
+    let signatureSha = CryptoJs.HmacSHA256(
+      signatureOrigin,
+      requestObj.APISecret
+    )
+    let signature = CryptoJs.enc.Base64.stringify(signatureSha)
+
+    let authorizationOrigin = `${apiKeyName}="${requestObj.APIKey}", algorithm="${algorithm}", headers="${headers}", signature="${signature}"`
+
+    let authorization = base64.encode(authorizationOrigin)
+
+    // 将空格编码
+    url = `${url}?authorization=${authorization}&date=${encodeURI(date)}&host=${host}`
+
+    resovle(url)
+  })
+}
 const sendImg = (event) => {
+  console.log('打印isAI状态', isAI.value)
+
+  if (isAI.value) {
+    return
+  }
   let selectedFile = event.target.files[0]
   console.log('打印上传图片', event.target.files[0])
   let fr = new FileReader()
@@ -326,6 +556,11 @@ const sendImg = (event) => {
   }
 }
 const sendEmoji = (item) => {
+  console.log('打印isAI状态', isAI.value)
+
+  if (isAI.value) {
+    return
+  }
   isEmojiVisible.value = false
   imgurl.value = item
   sendMsg()
@@ -333,6 +568,7 @@ const sendEmoji = (item) => {
   imgurl.value = null
 }
 const otoChat = (item) => {
+  isAI.value = false
   isPrivateValue.value = true
   messageBoxPartRef.value.scrollbottom()
   otoUser.value.name = item.name
@@ -347,6 +583,11 @@ const otoChat = (item) => {
         item.name === otoUser.value.name)
   )
   userStore.setFilterPrivateChatList(res)
+}
+const chatToAI = () => {
+  console.log('测试打开ai')
+
+  isAI.value = true
 }
 onMounted(() => {
   socket.connect() // 连接
