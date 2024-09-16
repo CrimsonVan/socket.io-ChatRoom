@@ -1,25 +1,22 @@
 const express = require("express");
 const { createServer } = require("http");
 const { userInfo } = require("os");
-const { Server } = require("socket.io");
-
+const socketIo=require('socket.io')
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, { 
-        cors: {
-        origin: '*'
+const io=socketIo(httpServer,{
+    cors:{
+        origin:'*'
     }
-});
+})
 let count=0
 let members=[]
-// let otoUser={}
 io.on("connection", (socket) => {
     count++
     console.log(`有前端介入了`);
     socket.on('join',(userInfo) => {
     let findone=members.findIndex(item=>item.name===userInfo.name)
     console.log('打印已存在的index',findone);
-    
     if(findone!==-1){
         members[findone].uid=socket.id
     }else{
@@ -53,13 +50,13 @@ io.on("connection", (socket) => {
 
       socket.on("disconnect", () => {
 
-        console.log('有老哥离开了ta叫做:',socket.id);
+        console.log('有老哥离开了ta叫做:',socket);
         count--
         let findone=members.findIndex(item=>item.uid===socket.id)
         console.log('打印已经退出的index',findone);
         members.splice(findone,1)
         console.log('打印断开删除后的数组长度',members.length);
-        socket.emit("myself",members);
+
         socket.broadcast.emit("welcome",members);
         
       });
@@ -69,3 +66,7 @@ httpServer.listen(3008,()=>{
     
 });
 
+app.listen(3000,()=>{
+    console.log('启动服务器3000端口成功');
+    
+})

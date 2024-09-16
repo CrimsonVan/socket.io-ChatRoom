@@ -87,7 +87,7 @@
                 color: rgb(176, 178, 189);
               "
             >
-              AI小天才
+              AI小天
             </div>
             <div @click="chatToAI" class="roomEnter" style="margin-top: 10px">
               <div
@@ -274,7 +274,6 @@ import { chatRoomUserInfo } from '@/stores/modules/user'
 import messageboxPart from '@/components/messageboxPart.vue'
 import * as base64 from 'base-64'
 import CryptoJs from 'crypto-js'
-// import { isVisible } from 'element-plus/es/utils'
 const router = useRouter()
 const messageBoxPartRef = ref('')
 const userStore = chatRoomUserInfo()
@@ -483,8 +482,7 @@ const sendMsg = async () => {
         // 对话已经完成
         if (data.payload.choices.text && data.header.status === 2) {
           AIreply += data.payload.choices.text[0].content
-          console.log('打印AIreply', AIreply)
-
+          console.log('打印AIreply', `"${AIreply}"`)
           userStore.AIchatlist[userStore.AIchatlength].msg = AIreply
           // requestObj.sparkResult += data.payload.choices.text[0].content;
           setTimeout(() => {
@@ -492,7 +490,7 @@ const sendMsg = async () => {
             AIreply = ''
             socket.close()
           }, 1000)
-
+          //  ```javascript ```
           messageBoxPartRef.value.scrollbottom()
         }
       }
@@ -515,7 +513,7 @@ const sendMsg = async () => {
 const getWebsocketUrl = () => {
   return new Promise((resovle) => {
     let url = 'wss://spark-api.xf-yun.com/v1.1/chat'
-    // let url = "wss://spark-api.xf-yun.com/v3/chat";
+    // let url = 'wss://spark-api.xf-yun.com/v3.1/chat'
 
     let host = 'spark-api.xf-yun.com'
     let apiKeyName = 'api_key'
@@ -523,7 +521,7 @@ const getWebsocketUrl = () => {
     let algorithm = 'hmac-sha256'
     let headers = 'host date request-line'
     let signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v1.1/chat HTTP/1.1`
-    // let signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v3/chat HTTP/3`;
+    // let signatureOrigin = `host: ${host}\ndate: ${date}\nGET /v3.1/chat HTTP/1.1`
 
     let signatureSha = CryptoJs.HmacSHA256(
       signatureOrigin,
@@ -591,6 +589,7 @@ const otoChat = (item) => {
 }
 const chatToAI = () => {
   console.log('测试打开ai')
+  messageBoxPartRef.value.scrollbottom()
 
   isAI.value = true
 }

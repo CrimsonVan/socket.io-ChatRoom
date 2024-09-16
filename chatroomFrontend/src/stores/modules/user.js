@@ -38,7 +38,7 @@ export const chatRoomUserInfo = defineStore(
     const removeRoomChatHistory = () => {
       roomChatHistory.value = []
     }
-    //和ai的聊天历史
+    //和ai的聊天
     const AIchatlist = ref([
       {
         name: 'AI小天才',

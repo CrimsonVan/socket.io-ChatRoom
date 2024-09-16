@@ -98,7 +98,41 @@
         <div class="text">
           <div class="name">{{ item.name }}</div>
 
-          <div class="msg">{{ item.msg }}</div>
+          <div class="msg">
+            {{ item.msg }}
+            <div
+              style="
+                width: 100%;
+                height: 20px;
+                /* background-color: pink; */
+                margin-top: 2px;
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+              "
+            >
+              <div
+                @click="copyAIText(item.msg)"
+                style="
+                  /* background-color: rgb(29, 144, 245); */
+                  background-color: transparent;
+                  cursor: pointer;
+                  /* background-color: rgb(66, 70, 86); */
+                  width: fit-content;
+                  font-size: small;
+                  color: #ccc;
+                  height: 18px;
+                  font-weight: 500;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  margin-right: 2px;
+                "
+              >
+                <span>点击复制</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -121,6 +155,30 @@
 <script setup>
 import { ref } from 'vue'
 import { chatRoomUserInfo } from '@/stores/modules/user'
+import useClipboard from 'vue-clipboard3'
+const { toClipboard } = useClipboard()
+function quickSort(arr) {
+  if (arr.length <= 1) {
+    return arr
+  } else {
+    const pivot = arr[0]
+    const left = []
+    const right = []
+
+    for (let i = 1; i < arr.length; i++) {
+      arr[i] < pivot ? left.push(arr[i]) : right.push(arr[i])
+    }
+
+    return [...quickSort(left), pivot, ...quickSort(right)]
+  }
+}
+console.log('测试ai的快速排序', quickSort([2, 1, 3, 4]))
+
+const copyAIText = async (item) => {
+  await toClipboard(item)
+  ElMessage.success('复制成功')
+}
+
 defineProps({
   isPrivate: {
     type: Boolean,
@@ -143,6 +201,7 @@ const scrollbottom = () => {
 
   setTimeout(() => {
     let el = messageboxRef.value
+
     if (el?.scrollHeight) {
       el.scrollTop = el.scrollHeight
     } else {
@@ -155,26 +214,20 @@ const scrollbottom = () => {
 defineExpose({
   scrollbottom
 })
-let str =
-  '以下是使用JavaScript编写的冒泡排序算法：\n\n```javascript\nfunction bubbleSort(arr) {\n var len ='
-str = str.replace(/\n/g, '')
-console.log('测试字符串str', str)
 </script>
 <style lang="scss" scoped>
 .messagebox {
-  // background-color: #fff;
-  // flex: 1;
   width: 100%;
   height: 500px;
   overflow-y: auto;
-
   padding: 0 40px 20px;
-  // overflow: hidden;
+
   &::-webkit-scrollbar {
     width: 0;
     height: 0;
     display: none;
   }
+
   .msgBox {
     width: 100%;
     min-height: 50px;
@@ -210,13 +263,20 @@ console.log('测试字符串str', str)
           min-height: 50px;
           max-width: 300px;
           min-width: 40px;
-          border-radius: 10px 0 10px 10px;
+          border-radius: 0 10px 10px 10px;
           display: flex;
           justify-content: center;
           align-items: center;
           padding: 8px;
           color: #fff;
           flex-wrap: wrap;
+          .highlights {
+            border-radius: 10px;
+            overflow-x: auto;
+            max-width: 284px;
+            min-width: 24px;
+            height: fit-content;
+          }
         }
         .name {
           color: #fff;
